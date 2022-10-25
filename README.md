@@ -1,4 +1,4 @@
-# 경동 나비엔 보일러 Home Assistant Climate
+# 경동 나비엔 보일러 Home Assistant Climate and Sensor
 
 1) 테스트 시스템 사양<br>
   - 경동 나비엔 NR-40D 룸 콘트롤러<br>
@@ -46,13 +46,15 @@
   - \_\_init__.py
 
 9) 파일 중 commands.json을 열어 token값과 deviceId값을 수정합니다.
-  - "token": "<b>a81c7152-87a0-4f2f-877b-19f4b20XXXXX</b>"
-  - "deviceId": "<b>c9fbd5c5-63ab-4e9c-9d7d-5c72b59XXXXX</b>"
-  - "긁은 색으로 표시 된 부분만 수정해야 합니다."
+```
+  "token": "a81c7152-87a0-4f2f-877b-19f4b20XXXXX"
+  "deviceId": "c9fbd5c5-63ab-4e9c-9d7d-5c72b59XXXXX"
+```  
+  - "쌍타옴표로 표시 된 부분만 수정해야 합니다."
 
 
 10) homeassistant/configuration.yaml 에 climate 를 추가합니다.
-
+```
 climate:
   - platform: navien_boiler
     scan_interval: 360
@@ -60,8 +62,10 @@ climate:
 sensor:
   - platform: navien_boiler
     scan_interval: 360
-
+```
 11) Home Assistant를 재시작 하면 적용됩니다.
 
-
+※ 참고로 climate는 현재 온도만 실시간으로 적용되고, 상태는 초기 부팅 시 적용됩니다.
+   SmartThings API를 사용하기 때문에 설정값 오류가 생겨 어쩔 수 없었습니다.
+  sensor는 실시간으로 상태를 반영하도록 만들었습니다.
 
