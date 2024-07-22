@@ -185,53 +185,38 @@ class SmartThingsApi:
     def update(self):
         """Update function for updating api information."""
         try:
-            SMARTTHINGS_API_URL = 'https://graph-ap02-apnortheast2.api.smartthings.com/device/{0}/events'.format(self.deviceId)
+            SMARTTHINGS_API_URL = f'https://api.smartthings.com/v1/devices/{self.deviceId}/status'
 
             response = requests.get(SMARTTHINGS_API_URL, timeout=10, headers=self.headers)
 
             if response.status_code == 200:
 
-                soup = BeautifulSoup(response.text, 'html.parser')
-                event_table = soup.find_all('td')
+                response_json = response.json()
 
-                title = ['Date', 'Source', 'Type', 'Name', 'Value', 'User', 'Displayed Text']
-                json_list = []
-                appendString = dict()
+                BOILER_STATUS['switch'] = response_json['components']['main'][
+                    'switch']['switch']['value']
 
-                index = 0
-                for tr in event_table:
-                    cleantext = re.sub(re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});'), '',
-                                       tr.text).strip()
-                    appendString[title[index]] = cleantext.split('\n')[0]
-                    index = index + 1
-                    if index % len(title) == 0:
-                        index = 0
-                        json_list.append(appendString)
-                        appendString = dict()
+                BOILER_STATUS['currentTemperature'] = response_json['components']['main'][
+                    'voiceaddress44089.currenttemperature']['currentTemperature']['value']
 
-                _LOGGER.debug('C : type %s, %s', type(json_list), json_list)
-                print('C : type %s, %s', type(json_list), json_list)
+                BOILER_STATUS['currentHotwaterTemperature'] = response_json['components']['HotwaterTemperatureSetting'][
+                    'voiceaddress44089.currenthotwatertemperature']['currentHotwaterTemperature']['value']
 
-                # 부팅 시에 전체 상태를 업데이트
-                if IS_BOOTED is False:
-                    for key in BOILER_STATUS.keys():
-                        for index, value in enumerate(json_list):
-                            if key == value['Name'] and value['Value'] != '0':
-                                _LOGGER.debug(" Value : {} ".format(value['Value']))
-                                BOILER_STATUS[key] = value['Value']
-                                break
+                BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['HotwaterTemperatureSetting'][
+                    'voiceaddress44089.thermostatHotwaterSetpoint']['hotwaterSetpoint']['value']
 
-                else:
-                    key = 'currentTemperature'
-                    for index, value in enumerate(json_list):
-                        if key == value['Name'] and value['Value'] != '0':
-                            _LOGGER.debug(" Value : {} ".format(value['Value']))
-                            BOILER_STATUS[key] = value['Value']
-                            break
+                BOILER_STATUS['spaceheatingSetpoint'] = response_json['components']['RoomTemperatureSetting'][
+                    'voiceaddress44089.thermostatSpaceHeatingSetpoint']['spaceheatingSetpoint']['value']
+
+                BOILER_STATUS['floorheatingSetpoint'] = response_json['components']['RoomTemperatureSetting'][
+                    'voiceaddress44089.thermostatFloorHeatingSetpoint']['floorheatingSetpoint']['value']
+
+                BOILER_STATUS['mode'] = response_json['components']['RoomTemperatureSetting'][
+                    'voiceaddress44089.thermostatMode']['mode']['value']
 
                 self.result = BOILER_STATUS
-                _LOGGER.debug('JSON Response : type %s, %s', type(BOILER_STATUS), BOILER_STATUS)
-                print('JSON Response: type %s, %s', type(BOILER_STATUS), BOILER_STATUS)
+
+                print('JSON Response: type %s, %s', type(self.result), self.result)
 
             else:
                 _LOGGER.debug(f'Error Code: {response.status_code}')
@@ -454,6 +439,7 @@ class Navien(ClimateEntity):
     def update(self):
         _LOGGER.debug(" updated!! ")
         self.result = self.device.update()
+
 
 if __name__ == '__main__':
     """example_integration sensor 
