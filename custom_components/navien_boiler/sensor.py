@@ -2,23 +2,10 @@ import datetime
 import json
 import logging
 import os
-from typing import Dict, Any
 
 import requests
-import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
-import sys
-import requests
-from bs4 import BeautifulSoup
-import re
-import codecs
-from datetime import timedelta
-
-from homeassistant.components.climate import HVAC_MODE_HEAT, HVAC_MODE_OFF
-from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
-from homeassistant.const import (CONF_NAME, CONF_MONITORED_CONDITIONS, TEMP_CELSIUS)
-from homeassistant.helpers.entity import Entity
-from homeassistant.util import Throttle
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.const import (TEMP_CELSIUS)
 
 BOILER_STATUS = {
     'deviceAlias': '경동 나비엔 보일러',
@@ -120,6 +107,7 @@ class Sensor(SensorEntity):
         self._api = api
         self._key = key
         self.var_icon = 'mdi:bathtub'
+        self.TEMP_CELSIUS = "°C"
 
     async def async_update(self):
         """Retrieve latest state."""
@@ -197,7 +185,7 @@ class Sensor(SensorEntity):
         if self._key == 'mode' or self._key == 'switch' or self._key == 'deviceAlias' or self._key == 'Date':
             return None
         else:
-            return TEMP_CELSIUS
+            return self.TEMP_CELSIUS
 
     @property
     def device_class(self):

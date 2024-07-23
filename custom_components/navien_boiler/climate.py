@@ -222,7 +222,6 @@ class Navien(ClimateEntity):
         self.device = device
         self.node_id = 'navien_climate'
         self.result = {}
-        self.TEMP_CELSIUS = "°C"
 
     @property
     def unique_id(self):
@@ -264,11 +263,6 @@ class Navien(ClimateEntity):
     def available(self):
         """Return True if entity is available."""
         return BOILER_STATUS['switch'] == 'on'
-
-    @property
-    def temperature_unit(self):
-        """Return the unit of measurement which this thermostat uses."""
-        return self.TEMP_CELSIUS
 
     @property
     def target_temperature_step(self):
