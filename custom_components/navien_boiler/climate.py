@@ -4,31 +4,16 @@ Support for Navien Component.
 For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/Navien/
 """
-import asyncio
-import datetime
 import json
-import hashlib
 import logging
 import os
 
-import aiofiles
-import httpx
 import requests
-import voluptuous as vol
-import requests
-from bs4 import BeautifulSoup
-import re
-import codecs
-from datetime import timedelta
-import homeassistant.helpers.config_validation as cv
-from homeassistant.components.climate import PLATFORM_SCHEMA, ClimateEntity
+from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
-    HVAC_MODE_HEAT, HVAC_MODE_OFF, HVAC_MODE_DRY, SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_PRESET_MODE, SUPPORT_TARGET_TEMPERATURE_RANGE, HVAC_MODES)
-from homeassistant.const import (
-    TEMP_CELSIUS, ATTR_TEMPERATURE, CONF_TOKEN, CONF_DEVICE_ID)
-from homeassistant.exceptions import PlatformNotReady
-from homeassistant.util import Throttle
+    HVAC_MODE_HEAT, HVAC_MODE_OFF, SUPPORT_TARGET_TEMPERATURE,
+    SUPPORT_PRESET_MODE)
+from homeassistant.const import (ATTR_TEMPERATURE)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -53,7 +38,7 @@ BOILER_STATUS = {
     "currentHotwaterTemperature": "25",
     "hotwaterSetpoint": "30",
     "floorheatingSetpoint": "25"
-  }
+}
 
 IS_BOOTED = False
 
@@ -237,6 +222,7 @@ class Navien(ClimateEntity):
         self.device = device
         self.node_id = 'navien_climate'
         self.result = {}
+        self.TEMP_CELSIUS = "°C"
 
     @property
     def unique_id(self):
@@ -282,7 +268,7 @@ class Navien(ClimateEntity):
     @property
     def temperature_unit(self):
         """Return the unit of measurement which this thermostat uses."""
-        return TEMP_CELSIUS
+        return self.TEMP_CELSIUS
 
     @property
     def target_temperature_step(self):
