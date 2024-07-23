@@ -381,6 +381,7 @@ class Navien(ClimateEntity):
         else:
             _LOGGER.error("Unrecognized preset_mode: %s", operation_mode)
 
+    @property
     def set_preset_mode(self, preset_mode):
         _LOGGER.debug("preset_mode >>>> " + preset_mode)
         """Set new preset mode."""
@@ -405,6 +406,7 @@ class Navien(ClimateEntity):
         else:
             _LOGGER.error("Unrecognized set_preset_mode: %s", preset_mode)
 
+    @property
     def set_hvac_mode(self, hvac_mode):
         _LOGGER.debug("hvac_mode >>>> " + hvac_mode)
         """Set new target hvac mode."""
