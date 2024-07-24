@@ -4,16 +4,31 @@ Support for Navien Component.
 For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/Navien/
 """
+import asyncio
+import datetime
 import json
+import hashlib
 import logging
 import os
 
+import aiofiles
+import httpx
 import requests
-from homeassistant.components.climate import ClimateEntity
+import voluptuous as vol
+import requests
+from bs4 import BeautifulSoup
+import re
+import codecs
+from datetime import timedelta
+import homeassistant.helpers.config_validation as cv
+from homeassistant.components.climate import PLATFORM_SCHEMA, ClimateEntity
 from homeassistant.components.climate.const import (
-    HVAC_MODE_HEAT, HVAC_MODE_OFF, SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_PRESET_MODE)
-from homeassistant.const import (ATTR_TEMPERATURE)
+     HVACMode, ClimateEntityFeature
+)
+from homeassistant.const import (
+    UnitOfTemperature, ATTR_TEMPERATURE, CONF_TOKEN, CONF_DEVICE_ID)
+from homeassistant.exceptions import PlatformNotReady
+from homeassistant.util import Throttle
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,7 +53,7 @@ BOILER_STATUS = {
     "currentHotwaterTemperature": "25",
     "hotwaterSetpoint": "30",
     "floorheatingSetpoint": "25"
-}
+  }
 
 IS_BOOTED = False
 
@@ -254,9 +269,9 @@ class Navien(ClimateEntity):
         """Return the list of supported features."""
         features = 0
         if self.is_on:
-            features |= SUPPORT_PRESET_MODE # 프리셋 모드
+            features |= ClimateEntityFeature.PRESET_MODE # 프리셋 모드
         if BOILER_STATUS['mode'] != 'OFF':
-            features |= SUPPORT_TARGET_TEMPERATURE # 온도 조절 모드로 되어 있지 않으면 un support set_temperature 오류 발생
+            features |= ClimateEntityFeature.TARGET_TEMPERATURE_RANGE # 온도 조절 모드로 되어 있지 않으면 un support set_temperature 오류 발생
         return features
 
     @property
@@ -265,12 +280,17 @@ class Navien(ClimateEntity):
         return BOILER_STATUS['switch'] == 'on'
 
     @property
+    def temperature_unit(self):
+        """Return the unit of measurement which this thermostat uses."""
+        return UnitOfTemperature.CELSIUS
+
+    @property
     def target_temperature_step(self):
         """Return the supported step of target temperature."""
         return 1
 
     @property
-    def min_temp(self):
+    def target_temperature_low(self):
         """Return the minimum temperature."""
         operation_mode = BOILER_STATUS['mode']
         if operation_mode == 'indoor':
@@ -282,7 +302,7 @@ class Navien(ClimateEntity):
 
 
     @property
-    def max_temp(self):
+    def target_temperature_high(self):
         """Return the maximum temperature."""
         operation_mode = BOILER_STATUS['mode']
         if operation_mode == 'indoor':
@@ -323,15 +343,15 @@ class Navien(ClimateEntity):
         Need to be one of HVAC_MODE_*.
         """
         if self.is_on:
-            return HVAC_MODE_HEAT
-        return HVAC_MODE_OFF
+            return HVACMode.HEAT
+        return HVACMode.OFF
 
     @property
     def hvac_modes(self):
         """Return the list of available hvac operation modes.
         Need to be a subset of HVAC_MODES.
         """
-        return [HVAC_MODE_OFF, HVAC_MODE_HEAT]
+        return [HVACMode.OFF, HVACMode.HEAT]
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -381,7 +401,6 @@ class Navien(ClimateEntity):
         else:
             _LOGGER.error("Unrecognized preset_mode: %s", operation_mode)
 
-    @property
     def set_preset_mode(self, preset_mode):
         _LOGGER.debug("preset_mode >>>> " + preset_mode)
         """Set new preset mode."""
@@ -406,15 +425,14 @@ class Navien(ClimateEntity):
         else:
             _LOGGER.error("Unrecognized set_preset_mode: %s", preset_mode)
 
-    @property
     def set_hvac_mode(self, hvac_mode):
         _LOGGER.debug("hvac_mode >>>> " + hvac_mode)
         """Set new target hvac mode."""
-        if hvac_mode == HVAC_MODE_HEAT:
+        if hvac_mode == HVACMode.HEAT:
             self.device.switch_on()
             BOILER_STATUS['switch'] = 'on'
             BOILER_STATUS['mode'] = 'away'
-        elif hvac_mode == HVAC_MODE_OFF:
+        elif hvac_mode == HVACMode.OFF:
             self.device.switch_off()
             BOILER_STATUS['mode'] = 'OFF'
 
