@@ -459,6 +459,21 @@ class Navien(ClimateEntity):
         elif operation_mode == 'ondol':
             return 65
 
+    def turn_on(self):
+        """Turn the entity on."""
+        self.device.switch_on()
+
+    def turn_off(self):
+        """Turn the entity off."""
+        self.device.switch_off()
+
+    def toggle(self):
+        """Toggle the entity."""
+        if self.is_on:
+            self.turn_off()
+        else:
+            self.turn_on()
+
     def update(self):
         _LOGGER.debug(" updated!! ")
         self.result = self.device.update()
