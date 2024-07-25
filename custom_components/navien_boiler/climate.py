@@ -271,7 +271,7 @@ class Navien(ClimateEntity):
         if self.is_on:
             features |= ClimateEntityFeature.PRESET_MODE # 프리셋 모드
         if BOILER_STATUS['mode'] != 'OFF':
-            features |= ClimateEntityFeature.TARGET_TEMPERATURE_RANGE # 온도 조절 모드로 되어 있지 않으면 un support set_temperature 오류 발생
+            features |= ClimateEntityFeature.TARGET_TEMPERATURE # 온도 조절 모드로 되어 있지 않으면 un support set_temperature 오류 발생
         return features
 
     @property
