@@ -436,6 +436,29 @@ class Navien(ClimateEntity):
             self.device.switch_off()
             BOILER_STATUS['mode'] = 'OFF'
 
+    @property
+    def min_temp(self):
+        """Return the minimum temperature."""
+        operation_mode = BOILER_STATUS['mode']
+        if operation_mode == 'indoor':
+            return 10
+        elif operation_mode == 'away':
+            return 30
+        elif operation_mode == 'ondol':
+            return 30
+
+
+    @property
+    def max_temp(self):
+        """Return the maximum temperature."""
+        operation_mode = BOILER_STATUS['mode']
+        if operation_mode == 'indoor':
+            return 40
+        elif operation_mode == 'away':
+            return 60
+        elif operation_mode == 'ondol':
+            return 65
+
     def update(self):
         _LOGGER.debug(" updated!! ")
         self.result = self.device.update()
