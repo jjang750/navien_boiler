@@ -300,7 +300,6 @@ class Navien(ClimateEntity):
         elif operation_mode == 'ondol':
             return 30
 
-
     @property
     def target_temperature_high(self):
         """Return the maximum temperature."""
@@ -336,7 +335,6 @@ class Navien(ClimateEntity):
         # else:
         #     return int(BOILER_STATUS['hotwaterSetpoint'])
 
-
     @property
     def hvac_mode(self):
         """Return hvac operation ie. heat, cool mode.
@@ -352,30 +350,6 @@ class Navien(ClimateEntity):
         Need to be a subset of HVAC_MODES.
         """
         return [HVACMode.OFF, HVACMode.HEAT]
-
-    def set_temperature(self, **kwargs):
-        """Set new target temperature."""
-        _LOGGER.debug(f" async_set_temperature >>>>>>>>>>>> {kwargs}")
-        if self.is_on is False:
-            self.device.switch_on()
-        temperature = kwargs.get(ATTR_TEMPERATURE)
-        _LOGGER.debug(f" temperature >>>>>>>>>>>> {temperature}")
-
-        if temperature is None:
-            return None
-
-        # 난방 모드에 따른 온도 변경
-        operation_mode = BOILER_STATUS['mode']
-        if operation_mode == 'indoor':
-            BOILER_STATUS['spaceheatingSetpoint'] = temperature
-            self.device.setThermostatSpaceHeatingSetpoint(temperature)
-        elif operation_mode == 'away':
-            BOILER_STATUS['hotwaterSetpoint'] = temperature
-            self.device.setThermostatHotwaterSetpoint(temperature)
-        elif operation_mode == 'ondol':
-            BOILER_STATUS['floorheatingSetpoint'] = temperature
-            self.device.setThermostatFloorHeatingSetpoint(temperature)
-        # self.device.setCurrentSetpoint(temperature)
 
     @property
     def preset_modes(self):
@@ -401,8 +375,30 @@ class Navien(ClimateEntity):
         else:
             _LOGGER.error("Unrecognized preset_mode: %s", operation_mode)
 
+    @property
+    def min_temp(self):
+        """Return the minimum temperature."""
+        operation_mode = BOILER_STATUS['mode']
+        if operation_mode == 'indoor':
+            return 10
+        elif operation_mode == 'away':
+            return 30
+        elif operation_mode == 'ondol':
+            return 30
+
+    @property
+    def max_temp(self):
+        """Return the maximum temperature."""
+        operation_mode = BOILER_STATUS['mode']
+        if operation_mode == 'indoor':
+            return 40
+        elif operation_mode == 'away':
+            return 60
+        elif operation_mode == 'ondol':
+            return 65
+
     def set_preset_mode(self, preset_mode):
-        _LOGGER.debug("preset_mode >>>> " + preset_mode)
+        _LOGGER.debug("set_preset_mode >>>> " + preset_mode)
         """Set new preset mode."""
         if self.is_on is False:
             self.device.switch_on()
@@ -425,8 +421,10 @@ class Navien(ClimateEntity):
         else:
             _LOGGER.error("Unrecognized set_preset_mode: %s", preset_mode)
 
+        self.update()
+
     def set_hvac_mode(self, hvac_mode):
-        _LOGGER.debug("hvac_mode >>>> " + hvac_mode)
+        _LOGGER.debug("set_hvac_mode >>>> " + hvac_mode)
         """Set new target hvac mode."""
         if hvac_mode == HVACMode.HEAT:
             self.device.switch_on()
@@ -436,36 +434,42 @@ class Navien(ClimateEntity):
             self.device.switch_off()
             BOILER_STATUS['mode'] = 'OFF'
 
-    @property
-    def min_temp(self):
-        """Return the minimum temperature."""
+        self.update()
+
+    def set_temperature(self, **kwargs):
+        """Set new target temperature."""
+        _LOGGER.debug(f" set_temperature >>>>>>>>>>>> {kwargs}")
+        if self.is_on is False:
+            self.device.switch_on()
+        temperature = kwargs.get(ATTR_TEMPERATURE)
+        _LOGGER.debug(f" temperature >>>>>>>>>>>> {temperature}")
+
+        if temperature is None:
+            return None
+
+        # 난방 모드에 따른 온도 변경
         operation_mode = BOILER_STATUS['mode']
         if operation_mode == 'indoor':
-            return 10
+            BOILER_STATUS['spaceheatingSetpoint'] = temperature
+            self.device.setThermostatSpaceHeatingSetpoint(temperature)
         elif operation_mode == 'away':
-            return 30
+            BOILER_STATUS['hotwaterSetpoint'] = temperature
+            self.device.setThermostatHotwaterSetpoint(temperature)
         elif operation_mode == 'ondol':
-            return 30
+            BOILER_STATUS['floorheatingSetpoint'] = temperature
+            self.device.setThermostatFloorHeatingSetpoint(temperature)
 
-
-    @property
-    def max_temp(self):
-        """Return the maximum temperature."""
-        operation_mode = BOILER_STATUS['mode']
-        if operation_mode == 'indoor':
-            return 40
-        elif operation_mode == 'away':
-            return 60
-        elif operation_mode == 'ondol':
-            return 65
+        self.update()
 
     def turn_on(self):
         """Turn the entity on."""
         self.device.switch_on()
+        self.update()
 
     def turn_off(self):
         """Turn the entity off."""
         self.device.switch_off()
+        self.update()
 
     def toggle(self):
         """Toggle the entity."""
@@ -473,6 +477,7 @@ class Navien(ClimateEntity):
             self.turn_off()
         else:
             self.turn_on()
+        self.update()
 
     def update(self):
         _LOGGER.debug(" updated!! ")
