@@ -30,17 +30,15 @@
   참조 : https://cafe.naver.com/koreassistant/592
   
 5) 나비엔 롬 콘트롤러와 연결 된 기기의 device id를 찾기 위해 SmartThings API 접속합니다.
-  - URL : https://graph-ap02-apnortheast2.api.smartthings.com/location/list<br>
+  - URL : https://my.smartthings.com/advanced/devices <br>
           ※ SmartThings API에 가입 시 입력한 아이디와 패스워드가 필요합니다.
   - 로그인 후 상단 메뉴의 "My Devices" 메뉴를 클릭하여 SmartThings에 등록 된 기기 목록을 조회합니다.
   - 조회 된 목록 중 "나비엔 보일러	Navien Room Controller" 가 보인다면 제대로 연결이 된 것이고<br> 
     만약, 나비에 보일러가 보이지 않는다면 처음부터 빼 놓은 부분이 있는지 확인 후 다시 설정이 필요합니다.
 
 6) My Devices 목록에서 나비엔 보일러를 클릭하여 상세페이지로 이동합니다.
-  - 상세페이지의  URL에 기기의 device id가 조회 됩니다.
-  - device id는 이후에 이벤트 데이터 조회를 위해 필요합니다.
-  - 예) https://graph-ap02-apnortheast2.api.smartthings.com/device/show/<b>c9fbd5c5-63ab-4e9c-9d7d-5c72b599a847</b>
-  - 링크 show/ 뒤에 굵은 색 부분이 device id 입니다.
+  - https://my.smartthings.com/advanced/devices   
+  - 상세페이지내에 나비엔보일러의 DEVICE ID를 저장해 놓습니다.
   
 7) 이제 나비엔 climate에 접속하기 위한 사전 준비가 끝났습니다.
   - 필수사항 : <br> 
