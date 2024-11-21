@@ -1,6 +1,6 @@
 {
-  "token": "e4aee890-bbca-40aa-8c2f-cfd2616d1282",
-  "deviceId": "93c50bbf-d5e2-4a3b-97bd-4ca495561a71",
+  "token": "e4aee890-bbca-XXXX-XXXX-cfd2616d1282",
+  "deviceId": "93c50bbf-d5e2-XXXX-XXXX-4ca495561a71",
   "BOILER_STATUS":
   {
     "deviceAlias": "경동 나비엔 보일러",
