@@ -182,16 +182,16 @@ class SmartThingsApi:
                 BOILER_STATUS['switch'] = response_json['components']['main']['switch']['switch']['value']
 
                 BOILER_STATUS['currentTemperature'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                BOILER_STATUS['currentHotwaterTemperature'] = response_json['components']['main']['thermostatWaterHeatingSetpoint']['heatingSetpoint']['value']
 
                 if response_json['components']['main']['thermostatMode']['thermostatMode'] == "away":  # 외출
-                    BOILER_STATUS['currentHotwaterTemperature'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
-                    BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                    BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['main']['thermostatHeatingSetpoint']['heatingSetpoint']['value']
                 elif response_json['components']['main']['thermostatMode']['thermostatMode'] == "ondol":  # 온돌
-                    BOILER_STATUS['floorheatingSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                    BOILER_STATUS['floorheatingSetpoint'] = response_json['components']['main']['thermostatHeatingSetpoint']['heatingSetpoint']['value']
                 elif response_json['components']['main']['thermostatMode']['thermostatMode'] == "heat":  # 실내
-                    BOILER_STATUS['spaceheatingSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                    BOILER_STATUS['spaceheatingSetpoint'] = response_json['components']['main']['thermostatHeatingSetpoint']['heatingSetpoint']['value']
                 else:
-                    BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                    BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['main']['thermostatHeatingSetpoint']['heatingSetpoint']['value']
 
                 BOILER_STATUS['mode'] = response_json['components']['main']['thermostatMode']['thermostatMode']['value']
 
