@@ -5,7 +5,6 @@ import os
 
 import requests
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.const import (TEMP_CELSIUS)
 
 BOILER_STATUS = {
     'deviceAlias': '경동 나비엔 보일러',
@@ -63,26 +62,21 @@ class SmartThingsApi:
 
                 response_json = response.json()
 
-                BOILER_STATUS['switch'] = response_json['components']['main'][
-                    'switch']['switch']['value']
+                BOILER_STATUS['switch'] = response_json['components']['main']['switch']['switch']['value']
 
-                BOILER_STATUS['currentTemperature'] = response_json['components']['main'][
-                    'voiceaddress44089.currenttemperature']['currentTemperature']['value']
+                BOILER_STATUS['currentTemperature'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
 
-                BOILER_STATUS['currentHotwaterTemperature'] = response_json['components']['HotwaterTemperatureSetting'][
-                    'voiceaddress44089.currenthotwatertemperature']['currentHotwaterTemperature']['value']
+                if response_json['components']['main']['thermostatMode']['thermostatMode'] == "away":# 외출
+                    BOILER_STATUS['currentHotwaterTemperature'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                    BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                elif response_json['components']['main']['thermostatMode']['thermostatMode'] == "ondol":# 온돌
+                    BOILER_STATUS['floorheatingSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                elif response_json['components']['main']['thermostatMode']['thermostatMode'] == "heat":# 실내
+                    BOILER_STATUS['spaceheatingSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                else:
+                    BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
 
-                BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['HotwaterTemperatureSetting'][
-                    'voiceaddress44089.thermostatHotwaterSetpoint']['hotwaterSetpoint']['value']
-
-                BOILER_STATUS['spaceheatingSetpoint'] = response_json['components']['RoomTemperatureSetting'][
-                    'voiceaddress44089.thermostatSpaceHeatingSetpoint']['spaceheatingSetpoint']['value']
-
-                BOILER_STATUS['floorheatingSetpoint'] = response_json['components']['RoomTemperatureSetting'][
-                    'voiceaddress44089.thermostatFloorHeatingSetpoint']['floorheatingSetpoint']['value']
-
-                BOILER_STATUS['mode'] = response_json['components']['RoomTemperatureSetting'][
-                    'voiceaddress44089.thermostatMode']['mode']['value']
+                BOILER_STATUS['mode'] = response_json['components']['main']['thermostatMode']['thermostatMode']
 
                 self.result = BOILER_STATUS
 

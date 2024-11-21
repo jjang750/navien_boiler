@@ -4,31 +4,17 @@ Support for Navien Component.
 For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/Navien/
 """
-import asyncio
-import datetime
 import json
-import hashlib
 import logging
 import os
 
-import aiofiles
-import httpx
 import requests
-import voluptuous as vol
-import requests
-from bs4 import BeautifulSoup
-import re
-import codecs
-from datetime import timedelta
-import homeassistant.helpers.config_validation as cv
-from homeassistant.components.climate import PLATFORM_SCHEMA, ClimateEntity
+from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
-     HVACMode, ClimateEntityFeature
+    HVACMode, ClimateEntityFeature
 )
 from homeassistant.const import (
-    UnitOfTemperature, ATTR_TEMPERATURE, CONF_TOKEN, CONF_DEVICE_ID)
-from homeassistant.exceptions import PlatformNotReady
-from homeassistant.util import Throttle
+    UnitOfTemperature, ATTR_TEMPERATURE)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -141,7 +127,7 @@ class SmartThingsApi:
         print("setThermostatMode : " + mode)
         _LOGGER.debug("setThermostatMode : " + mode)
 
-        if mode == 'indoor' or mode == 'away' or mode == 'ondol' or mode == 'OFF':
+        if mode == 'heat' or mode == 'away' or mode == 'ondol' or mode == 'OFF':
             self.send("setThermostatMode", mode)
             BOILER_STATUS['mode'] = mode
         else:
@@ -153,8 +139,8 @@ class SmartThingsApi:
     def away(self):
         self.setThermostatMode("away")
 
-    def indoor(self):
-        self.setThermostatMode("indoor")
+    def heat(self):
+        self.setThermostatMode("heat")
 
     def setThermostatSpaceHeatingSetpoint(self, temperature) -> None:
         print("setThermostatSpaceHeatingSetpoint : {}".format(temperature))
@@ -193,26 +179,21 @@ class SmartThingsApi:
 
                 response_json = response.json()
 
-                BOILER_STATUS['switch'] = response_json['components']['main'][
-                    'switch']['switch']['value']
+                BOILER_STATUS['switch'] = response_json['components']['main']['switch']['switch']['value']
 
-                BOILER_STATUS['currentTemperature'] = response_json['components']['main'][
-                    'voiceaddress44089.currenttemperature']['currentTemperature']['value']
+                BOILER_STATUS['currentTemperature'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
 
-                BOILER_STATUS['currentHotwaterTemperature'] = response_json['components']['HotwaterTemperatureSetting'][
-                    'voiceaddress44089.currenthotwatertemperature']['currentHotwaterTemperature']['value']
+                if response_json['components']['main']['thermostatMode']['thermostatMode'] == "away":  # 외출
+                    BOILER_STATUS['currentHotwaterTemperature'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                    BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                elif response_json['components']['main']['thermostatMode']['thermostatMode'] == "ondol":  # 온돌
+                    BOILER_STATUS['floorheatingSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                elif response_json['components']['main']['thermostatMode']['thermostatMode'] == "heat":  # 실내
+                    BOILER_STATUS['spaceheatingSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
+                else:
+                    BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
 
-                BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['HotwaterTemperatureSetting'][
-                    'voiceaddress44089.thermostatHotwaterSetpoint']['hotwaterSetpoint']['value']
-
-                BOILER_STATUS['spaceheatingSetpoint'] = response_json['components']['RoomTemperatureSetting'][
-                    'voiceaddress44089.thermostatSpaceHeatingSetpoint']['spaceheatingSetpoint']['value']
-
-                BOILER_STATUS['floorheatingSetpoint'] = response_json['components']['RoomTemperatureSetting'][
-                    'voiceaddress44089.thermostatFloorHeatingSetpoint']['floorheatingSetpoint']['value']
-
-                BOILER_STATUS['mode'] = response_json['components']['RoomTemperatureSetting'][
-                    'voiceaddress44089.thermostatMode']['mode']['value']
+                BOILER_STATUS['mode'] = response_json['components']['main']['thermostatMode']['thermostatMode']
 
                 self.result = BOILER_STATUS
 
@@ -293,7 +274,7 @@ class Navien(ClimateEntity):
     def target_temperature_low(self):
         """Return the minimum temperature."""
         operation_mode = BOILER_STATUS['mode']
-        if operation_mode == 'indoor':
+        if operation_mode == 'heat':
             return 10
         elif operation_mode == 'away':
             return 30
@@ -304,7 +285,7 @@ class Navien(ClimateEntity):
     def target_temperature_high(self):
         """Return the maximum temperature."""
         operation_mode = BOILER_STATUS['mode']
-        if operation_mode == 'indoor':
+        if operation_mode == 'heat':
             return 40
         elif operation_mode == 'away':
             return 60
@@ -326,7 +307,7 @@ class Navien(ClimateEntity):
     def target_temperature(self):
         """Return the temperature we try to reach."""
         operation_mode = BOILER_STATUS['mode']
-        if operation_mode == 'indoor':
+        if operation_mode == 'heat':
             return int(BOILER_STATUS['spaceheatingSetpoint'])
         elif operation_mode == 'away':
             return int(BOILER_STATUS['hotwaterSetpoint'])
@@ -364,7 +345,7 @@ class Navien(ClimateEntity):
         Requires SUPPORT_PRESET_MODE.
         """
         operation_mode = BOILER_STATUS['mode']
-        if operation_mode == 'indoor':
+        if operation_mode == 'heat':
             return STATE_HEAT
         elif operation_mode == 'away':
             return STATE_AWAY
@@ -379,7 +360,7 @@ class Navien(ClimateEntity):
     def min_temp(self):
         """Return the minimum temperature."""
         operation_mode = BOILER_STATUS['mode']
-        if operation_mode == 'indoor':
+        if operation_mode == 'heat':
             return 10
         elif operation_mode == 'away':
             return 30
@@ -390,7 +371,7 @@ class Navien(ClimateEntity):
     def max_temp(self):
         """Return the maximum temperature."""
         operation_mode = BOILER_STATUS['mode']
-        if operation_mode == 'indoor':
+        if operation_mode == 'heat':
             return 40
         elif operation_mode == 'away':
             return 60
@@ -404,8 +385,8 @@ class Navien(ClimateEntity):
             self.device.switch_on()
             BOILER_STATUS['switch'] = 'on'
         if preset_mode == STATE_HEAT:
-            self.device.indoor()
-            BOILER_STATUS['mode'] = 'indoor'
+            self.device.heat()
+            BOILER_STATUS['mode'] = 'heat'
         # elif preset_mode == STATE_BATH:
         #     self.device.away()
         #     BOILER_STATUS['mode'] = 'away'
@@ -449,7 +430,7 @@ class Navien(ClimateEntity):
 
         # 난방 모드에 따른 온도 변경
         operation_mode = BOILER_STATUS['mode']
-        if operation_mode == 'indoor':
+        if operation_mode == 'heat':
             BOILER_STATUS['spaceheatingSetpoint'] = temperature
             self.device.setThermostatSpaceHeatingSetpoint(temperature)
         elif operation_mode == 'away':
@@ -496,6 +477,8 @@ if __name__ == '__main__':
     print("deviceId : {}".format(deviceId))
     real_time_api = SmartThingsApi(data)
     real_time_api.away()
-    real_time_api.setThermostatHotwaterSetpoint("30")
+    real_time_api.setThermostatHotwaterSetpoint(30)
+    # real_time_api.ondol()
+    # real_time_api.setThermostatFloorHeatingSetpoint(30)
     print("{}".format(BOILER_STATUS))
 
