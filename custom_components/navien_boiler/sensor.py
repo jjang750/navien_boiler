@@ -76,7 +76,7 @@ class SmartThingsApi:
                 else:
                     BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
 
-                BOILER_STATUS['mode'] = response_json['components']['main']['thermostatMode']['thermostatMode']
+                BOILER_STATUS['mode'] = response_json['components']['main']['thermostatMode']['thermostatMode']['value']
 
                 self.result = BOILER_STATUS
 

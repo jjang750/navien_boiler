@@ -1,17 +1,17 @@
 {
-  "token": "e4aee890-bbca-40aa-8c2f-cfd2XXXXXXXXX",
-  "deviceId": "93c50bbf-d5e2-4a3b-97bd-4cXXXXXXXXXXX",
+  "token": "e4aee890-bbca-40aa-8c2f-cfd2616d1282",
+  "deviceId": "93c50bbf-d5e2-4a3b-97bd-4ca495561a71",
   "BOILER_STATUS":
   {
     "deviceAlias": "경동 나비엔 보일러",
     "Date": "",
     "mode": "away",
     "switch": "on",
-    "currentTemperature": "25",
-    "spaceheatingSetpoint": "25",
-    "currentHotwaterTemperature": "25",
+    "currentTemperature": "30",
+    "spaceheatingSetpoint": "30",
+    "currentHotwaterTemperature": "30",
     "hotwaterSetpoint": "30",
-    "floorheatingSetpoint": "25"
+    "floorheatingSetpoint": "30"
   },
   "switch":
     {

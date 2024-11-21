@@ -24,7 +24,7 @@ DEFAULT_NAME = 'Navien'
 MAX_TEMP = 45
 MIN_TEMP = 10
 HVAC_MODE_BATH = '목욕'
-STATE_HEAT = '난방'
+STATE_HEAT = '실내'
 STATE_ONDOL = '온돌'
 STATE_AWAY = '외출'
 STATE_OFF = '종료'
@@ -193,7 +193,7 @@ class SmartThingsApi:
                 else:
                     BOILER_STATUS['hotwaterSetpoint'] = response_json['components']['main']['temperatureMeasurement']['temperature']['value']
 
-                BOILER_STATUS['mode'] = response_json['components']['main']['thermostatMode']['thermostatMode']
+                BOILER_STATUS['mode'] = response_json['components']['main']['thermostatMode']['thermostatMode']['value']
 
                 self.result = BOILER_STATUS
 
@@ -476,9 +476,9 @@ if __name__ == '__main__':
     print("token : {}".format(token))
     print("deviceId : {}".format(deviceId))
     real_time_api = SmartThingsApi(data)
-    real_time_api.away()
-    real_time_api.setThermostatHotwaterSetpoint(30)
-    # real_time_api.ondol()
-    # real_time_api.setThermostatFloorHeatingSetpoint(30)
+    # real_time_api.away()
+    # real_time_api.setThermostatHotwaterSetpoint(30)
+    real_time_api.heat()
+    real_time_api.setThermostatFloorHeatingSetpoint(30)
     print("{}".format(BOILER_STATUS))
 
